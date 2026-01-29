@@ -89,7 +89,7 @@ description: Use when driving an engineering project from a clear vision through
 
 ## 提交与推送（强制）
 
-当一轮 `vN` 的计划文档与对应实现达到“可回溯、可复现”的状态后，必须提交并推送：
+保持“每个 slice 一个 commit + push”，即每一个feature或者每一批新生成的文档，都需要做一个提交和push
 
 - `git status --porcelain=v1`
 - `git add -A`
