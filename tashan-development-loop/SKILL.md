@@ -1,6 +1,6 @@
 ---
 name: tashan-development-loop
-description: Use when driving an engineering project from a clear vision through iterative, versioned execution plans and milestones (doc/plan/vN-*), executing those plans with the Tashan development loop, reviewing gaps between outcomes and vision, and repeating with v(N+1) plans until the vision is fully delivered.
+description: Use when a project needs a PRD/spec plus versioned execution plans (docs/plan/vN-*) and strict ongoing alignment between PRD, plans, tests, and repo reality (to prevent doc drift and rework).
 ---
 
 # 塔山项目循环（愿景 → 分解计划 → 里程碑 → 执行 → 回顾差异 → 新版本计划…直到收敛）
@@ -11,16 +11,56 @@ description: Use when driving an engineering project from a clear vision through
 
 其中，“塔山开发循环”只是**执行计划**的那一部分。
 
+## 关键补强：PRD（设计图）与计划（施工计划）的对齐
+
+你可以把它理解成：
+
+- **PRD / Spec**：回答“要造什么、为什么、边界与验收是什么”（设计图）。
+- **vN 计划文档**：回答“这一版怎么交付、如何验证、风险是什么”（施工计划）。
+
+这两者必须有**可追溯关系**，否则一定会出现：
+
+- PRD 写得很漂亮，但计划/测试/代码跑偏；
+- 计划写得很硬，但 PRD 缺关键约束，导致返工；
+- 文档越来越多，但没有统一口径与证据链，只能靠记忆推进。
+
 ## Quick Reference
 
-1) **建立愿景**（若已存在可再次读一遍并适当更新/不存在则以头脑风暴的方式、以产品经理的视角与用户共建一份产品的愿景）：把“最终要达成什么”写成可验收的文字/指标/行为定义。
-2) **分解执行计划**：在 `docs/plan/` 下写作一组版本化计划文件 `vN-*`，把愿景拆成可交付 slice（每个都有验收与验证命令/测试）。
-3) **建立里程碑**：在 `vN-index` 中定义里程碑与交付清单（每个里程碑的 DoD/验证命令）。
-4) **执行计划**：对每个计划条目使用“塔山开发循环”（红→绿→重构，证据优先）。
-5) **回顾差异**：对照愿景，评估当前实现还差什么（范围、行为、性能、可靠性、可维护性、体验等），把差异写清楚。
-6) **形成新版本计划**：把差异转成下一轮 `v(N+1)-*` 计划与 `v(N+1)-index`，并给出新的里程碑。
-7) **提交与推送**：每一轮计划文档与对应实现收敛成一个可回溯状态后，进行 `git commit` 与 `git push`。
-8) **重复执行**: 若第5步识别出较大差异，则继续重复执行以上过程，直至项目现实与愿景之间的差异收敛
+0) **写 PRD / Spec（先于 vN 计划）**：把“要造什么/为什么/不造什么/验收口径/关键约束”写成可审查的文档，并给每条需求编号（便于追溯）。
+1) **建立愿景**：把“最终要达成什么”写成可验收的文字/指标/行为定义（愿景可以写在 PRD 顶部，也可以单独文档）。
+2) **分解执行计划**：在 `docs/plan/` 下写作版本化计划 `vN-*`，把 PRD 的需求拆成可交付条目（每条必须有验收与验证命令/测试）。
+3) **建立里程碑**：在 `vN-index` 中定义里程碑与交付清单（每个里程碑都要可验证，并附证据路径）。
+4) **执行计划**：对每个计划条目使用塔山开发循环（红→绿→重构，证据优先）。
+5) **文档自检与对齐（强制 Gate）**：对 PRD 与 vN 文档做一次“可追溯 + 可验证 + 无歧义”的自检；不过关就停止写代码。
+6) **回顾差异**：对照 PRD/愿景，评估当前实现还差什么，把差异写清楚（并标注下一版入口）。
+7) **形成新版本计划**：把差异转成下一轮 `v(N+1)-*` 计划与 `v(N+1)-index`，并给出新的里程碑。
+8) **提交与推送**：每一轮计划文档与对应实现收敛成一个可回溯状态后，进行 `git commit` 与 `git push`。
+9) **重复执行**：若第6步识别出较大差异，则继续重复执行以上过程，直至差异收敛。
+
+## PRD / Spec（推荐用“OpenSpec 风格”写法）
+
+PRD 的目标不是“看起来很完整”，而是提供**稳定口径**与**可追溯锚点**，让后续计划/测试/代码都能引用它。
+
+写法建议：
+
+- 每条需求都有 **Req ID**（例如 `REQ-001`），并写清：动机、范围、非目标、验收口径。
+- 术语与数据结构有统一命名（避免同一概念在不同文档里换名）。
+- 把关键“约束/不接受什么/不做什么”写清楚（这是返工的最大来源）。
+
+推荐目录与命名（若仓库已有约定则服从仓库约定）：
+
+- `docs/prd/<topic>.md`（或 `docs/prd/YYYY-MM-DD-<topic>.md`）
+- vN 计划入口：`docs/plan/vN-index.md`
+
+PRD 模板与检查清单建议放到本 skill 的 references 里（避免 SKILL.md 膨胀）：
+
+- PRD 模板：`references/prd-template-openspec.md`
+- 文档自检清单：`references/doc-review-checklist.md`
+- 追溯矩阵模板：`references/traceability-matrix-template.md`
+
+同时提供一个“文档语言卫生 + 断链检查”脚本（默认扫描 `docs/prd` 与 `docs/plan`）：
+
+- `scripts/doc_hygiene_check.py`
 
 ## 文档与命名约定（doc/plan）
 
@@ -36,21 +76,23 @@ description: Use when driving an engineering project from a clear vision through
 - 里程碑：名称、范围、DoD、验证命令/测试、状态（todo/doing/done）。
 - 计划索引：链接到所有 `vN-<topic>.md`。
 - 差异列表：本轮结束后仍未达成的差异（用于生成 v(N+1)）。
+- 追溯矩阵（强烈推荐）：`Req ID -> vN-xxx -> tests/commands -> 证据`（任何一个断链都要补齐）。
 
 ## 计划文件模板（vN-<topic>.md）
 
 每个计划必须可执行、可验收、可验证，至少包含：
 
 - **Goal**：这一项完成后，愿景的哪个部分被满足？
+- **PRD Trace**：对应的 `Req ID`（至少 1 条；没有就说明为什么这不是需求实现而是基础设施/偿债）。
 - **Scope**：做什么/不做什么（边界写清楚）。
 - **Acceptance**：验收标准（尽量能转成测试断言或可重复验证命令）。
 - **Files**：会创建/修改/测试哪些路径（精确到文件）。
 - **Steps**（严格按顺序）：
   1) 写失败测试（红）
   2) 运行到红（给命令 + 预期失败原因）
-  3) 最小实现（绿）
+  3) 实现（绿）：实现满足测试与验收的行为（避免提前加无验收支撑的内容）
   4) 运行到绿（给命令 + 预期通过）
-  5) 必要重构（仍绿）
+  5) 必要重构（仍绿）：只做不改变行为的结构收敛
 - **Risks**：本计划的主要风险与缓解方式。
 
 ## 执行计划：塔山开发循环（Strict）
@@ -65,7 +107,7 @@ description: Use when driving an engineering project from a clear vision through
 
 - 每条 DoD 必须可二元判定（pass/fail）或可量化（数字/阈值/比例），避免“看起来 / 差不多 / 尽量 / 优化一下 / 改善质量”等描述。
 - 每条 DoD 必须绑定一个可重复的验证方式：命令/测试/脚本 + 预期输出（例如 exit code、关键日志关键词、文件产物路径）。
-- DoD 必须包含至少 1 条“反作弊条款”，能阻止“只做 rename / 占位 / 空实现 / 只跑通”就宣称完成。
+- DoD 必须包含至少 1 条“反作弊条款”，能阻止“只做改名 / 空壳 / 空实现 / 只跑通”就宣称完成。
 - Scope 必须写清楚“不做什么”，避免无边界扩张或用“之后再说”逃逸。
 
 #### 失败处理（强制）
@@ -85,19 +127,43 @@ description: Use when driving an engineering project from a clear vision through
 
 1) Analysis: 收集事实 + 约束 + 成功标准
 2) Design: 2–3 方案 + 推荐 + 取舍（如果已经由计划明确锁定方案，可写“引用 vN-xxx 的方案选择”）
-3) Plan: 拆任务 + 明确文件/命令/预期
+3) Plan: 拆任务 + 明确文件/命令/预期（并把 `Req ID` 写进每条计划）
 4) TDD Red: 写失败测试 + 跑到红
-5) TDD Green: 最小实现 + 跑到绿
+5) TDD Green: 实现 + 跑到绿
 6) Refactor: 必要重构（仍绿）
-7) Review: 复盘 + 风险 + 下一个最小任务
+7) Review: 复盘 + 风险 + 下一个明确任务（并更新 PRD/追溯矩阵，避免文档漂移）
 8) Ship: `git commit` + `git push`（按版本/里程碑组织提交信息）
 
 ### 红绿灯（证据优先）
 
 在声称“完成/修复/通过”之前：
 
-- 跑最小相关测试命令（或验证命令），以输出为证据
+- 跑最相关的测试命令（或验证命令），以输出为证据
 - 再跑更大范围的验证（按里程碑执行）
+
+## 文档自检（Doc QA Gate：强制）
+
+在写任何实现之前，必须完成一次“文档硬度自检”，目标是把返工前置到文档阶段。
+
+最低要求：
+
+- PRD 中每条 `Req ID` 都有：范围、非目标、验收口径（可二元判定）、优先级/阶段归属。
+- vN 的每条计划都能追溯到 `Req ID`（或明确说明这是基础设施/偿债，不属于需求交付）。
+- vN 的每条验收都带验证命令 + 预期输出（不能只写“应该可以/看起来/优化”）。
+- 术语一致：同一概念/字段/ID 在 PRD、计划、测试与代码中命名一致。
+
+如果需要一个更具体的自检清单：见 `references/doc-review-checklist.md`。
+
+## 自动检查（可选，但强烈推荐在 Review 前跑一次）
+
+用法示例（在你的仓库根目录执行）：
+
+- `python3 /path/to/skills/tashan-development-loop/scripts/doc_hygiene_check.py --root .`
+
+它会做两类检查：
+
+1) 扫描 Markdown 中的“模糊表达”（可在脚本里扩展词表）
+2) 检查 PRD 的 `REQ-###` 是否在 `docs/plan/` 中被引用，以及 plan 文档是否包含 PRD Trace（或明确写明基础设施/偿债）
 
 ## 回顾差异（愿景 vs. 现实）
 
@@ -139,7 +205,7 @@ description: Use when driving an engineering project from a clear vision through
 - “先把架子搭完再补红测”
 - “反正工程量不是问题，先铺开”
 - “先不提交/不推送，之后再说”
-- “DoD/验收标准太软，先开写/先改名/先占位”
+- “DoD/验收标准太软，先开写/先改名/先做空壳”
 - “DoD 先写个大概，后面再补硬”
 - “只要跑通/能 instantiate 就算 done”
 
@@ -150,8 +216,8 @@ description: Use when driving an engineering project from a clear vision through
 | “先写实现更快，测试后补” | 先写红测；否则没有目标函数，只有随机游走。 |
 | “我已经手动测过了” | 手动不是回归；必须把成功标准固化成测试。 |
 | “这次不一样，TDD 太慢” | 一旦说“这次不一样”，说明风险更高，更要 TDD。 |
-| “先把架子搭完再补红测” | 这是沉没成本陷阱；先做最小闭环（红→绿），再扩展。 |
-| “工程量无所谓，先铺开” | 铺开会放大返工；先把最小 slice 做成可验证闭环。 |
+| “先把架子搭完再补红测” | 这是沉没成本陷阱；先把一条可验收路径做通（红→绿），再扩展。 |
+| “工程量无所谓，先铺开” | 铺开会放大返工；先按验收驱动推进，并持续维护追溯矩阵。 |
 | “提交/推送太麻烦，用户自己来” | 这是交接风险：**每个工程计划完成都必须 commit+push**，否则不算交付。 |
 
 
@@ -163,7 +229,7 @@ description: Use when driving an engineering project from a clear vision through
 - “先把架子搭完再补红测”
 - “反正工程量不是问题，先铺开”
 - “先不提交/不推送，之后再说”
-- “DoD/验收标准太软，先开写/先改名/先占位”
+- “DoD/验收标准太软，先开写/先改名/先做空壳”
 - “DoD 先写个大概，后面再补硬”
 - “只要跑通/能 instantiate 就算 done”
 
